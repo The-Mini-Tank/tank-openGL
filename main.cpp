@@ -10,7 +10,7 @@ float angleYY = -90.0f; // Ângulo de rotação no eixo Y da torre
 int mouseX, mouseY;  // Posições do mouse
 float tankPosX = 0.0f, tankPosZ = 0.0f; // Posição do tanque no plano XZ
 float speed = 0.1f; // Velocidade de movimento do tanque
-float rotationSpeed = 2.0f; // Velocidade de rotação do tanque
+float rotationSpeed = 5.0f; // Velocidade de rotação do tanque
 
 
 // EXIBIR TEXTO NA TELA 
