@@ -4,27 +4,29 @@
 #include <cmath>
 #include <cstdio>
 #include <iostream>
+#include "components/Tank.cpp"
 
-float angleY = 0.0f; // Ângulo de rotação no eixo Y da torre
-float angleYY = -90.0f; // Ângulo de rotação no eixo Y da torre
-int mouseX, mouseY;  // Posições do mouse
-float tankPosX = 0.0f, tankPosZ = 0.0f; // Posição do tanque no plano XZ
-float speed = 0.01f; // Velocidade de movimento do tanque
-float rotationSpeed = 0.4f; // Velocidade de rotação do tanque
+float angleY = 0.0f; 
+float angleYY = -90.0f; 
+int mouseX, mouseY;  
+float tankPosX = 0.0f, tankPosZ = 0.0f; 
+float speed = 8.0f; 
+float rotationSpeed = 150.0f; 
 bool keyWPressed = false;
 bool rotatingA = false;
 bool rotatingD = false;
-
+int previousTime = 0;
 
 
 void display() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
     // Configuração da projeção
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0, 1.0, 0.1, 100.0);
+    gluPerspective(60.0, (GLfloat)800 / (GLfloat)600, 0.1, 100.0);
     glTranslatef(0, -5, -10);
     glRotatef(45, 1, 0, 0.0f);
 
@@ -34,49 +36,42 @@ void display() {
     gluLookAt(0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
     // Desenhar o tanque
-    glPushMatrix();
+        drawTank(tankPosX, tankPosZ, angleYY, angleY);
 
-        // Aplicar translação com base na posição do tanque
-        glTranslatef(tankPosX, 0.0, tankPosZ);
-        glRotatef(angleYY, 0.0f, 1.0f, 0.0f);
-        
-        // Corpo
-        glPushMatrix();
-            glScalef(3.0, 1.0, 2.0);
-            glColor3f(0.0, 0.8, 0.0);
-            glutSolidCube(1.0);
-        glPopMatrix();
-
-        // Torre e Cano
-        glPushMatrix();
-            glRotatef(angleY, 0.0f, 1.0f, 0.0f); // Aplica a rotação da torre
-            glTranslatef(0.0, 0.75, 0.0); // Translada depois da rotação
-            glScalef(1.5, 1.0, 1.5);
-            glColor3f(0.0, 0.5, 0.0);
-            glutSolidCube(1.0);
-
-            // Cano do tanque (aplicando a rotação já feita)
-            glPushMatrix();
-                glTranslatef(0.75, 0.0, 0.0); // Translada o cano em relação ao corpo
-                glScalef(2.0, 0.3, 0.3);
-                glColor3f(0.5, 0.5, 0.5);
-                glutSolidCube(1.0);
-            glPopMatrix();
-
-        glPopMatrix();
-
-        // Rodas
-        for (int i = -1; i <= 1; i += 2) {  // Para desenhar as rodas dos dois lados
-            glPushMatrix();
-                glTranslatef(0.0, -0.5, i * 1.25); // Posicionando as rodas lateralmente
-                glScalef(3.0, 0.5, 0.5); // Alongando as rodas no eixo X
-                glColor3f(0.3, 0.3, 0.3);
-                glutSolidCube(1.0);
-            glPopMatrix();
-        }
     
-    glPopMatrix();
     glutSwapBuffers();
+}
+
+void setupLighting() {
+    // Ativar iluminação
+    glEnable(GL_LIGHTING);
+
+    glEnable(GL_COLOR_MATERIAL);     // Habilitar cor de material
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    glEnable(GL_NORMALIZE);
+    
+    glEnable(GL_LIGHT0); // Usar a luz 0
+  
+
+    // Definir posição da luz
+    GLfloat lightPos[] = { 1.0f, 1.0f, 1.0f, 0.0f };
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+
+    // Definir propriedades da luz
+    GLfloat lightAmbient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+    GLfloat lightDiffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+    GLfloat lightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
+
+    // Definir material do tanque
+    GLfloat matDiffuse[] = { 0.0f, 0.8f, 0.0f, 1.0f };  // Cor do tanque
+    GLfloat matSpecular[] = { 0.3f, 0.3f, 0.3f, 1.0f };  // Componente especular
+    GLfloat matShininess[] = { 20.0f };                   // Brilho do material
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, matDiffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, matSpecular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, matShininess);
 }
 
 void update(int value) {
@@ -90,15 +85,13 @@ void onMouseMove(int x, int y) {
 }
 
 void updateAngle() {
-    // Defina a posição do cubo em 3D
-    GLfloat cuboX = tankPosX, cuboY = 0.75f, cuboZ = tankPosZ; // Posição do cubo no espaço 3D
 
-    // Matrizes necessárias para a projeção
+    GLfloat cuboX = tankPosX, cuboY = 0.75f, cuboZ = tankPosZ;
+
     GLdouble modelview[16], projection[16];
     GLint viewport[4];
     GLdouble winX, winY, winZ;
 
-    // Obtenha as matrizes e o viewport
     glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
     glGetDoublev(GL_PROJECTION_MATRIX, projection);
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -106,40 +99,35 @@ void updateAngle() {
     // Projeta a posição 3D do cubo nas coordenadas da tela (2D)
     gluProject(cuboX, cuboY, cuboZ, modelview, projection, viewport, &winX, &winY, &winZ);
 
-    // Calcular as coordenadas do centro do cubo em 2D
     int centerX = static_cast<int>(winX);
-    int centerY = static_cast<int>(viewport[3] - winY); // Inverte Y
+    int centerY = static_cast<int>(viewport[3] - winY); 
 
-    // Converter a posição do mouse para coordenadas relativas ao centro do cubo
     int dx = mouseX - centerX;
-    int dy = centerY - mouseY; // Inverter y porque a origem (0,0) está no topo da tela
+    int dy = centerY - mouseY; 
 
-    // Calcular o ângulo em relação ao eixo X (no plano XY)
-    angleY = atan2((float)dy, (float)dx) * (180.0 / M_PI); // Converter para graus
+    angleY = atan2((float)dy, (float)dx) * (180.0 / M_PI); 
     angleY = angleY - angleYY;
 
-    // Exibir o valor de angleY no terminal usando printf
-    printf("keyWPressed: %s\n", keyWPressed ? "true" : "false");
+    //printf("keyWPressed: %s\n", keyWPressed ? "true" : "false");
 
 
-    // Normalizar o ângulo para ficar entre 0 e 360 graus
     if (angleY < 0) {
         angleY += 360.0f;
     }
 
-    glutPostRedisplay(); // Solicitar atualização da tela
+    glutPostRedisplay(); 
 }
 
 void keyboardFunc(unsigned char key, int x, int y) {
 
      switch (key) {
-        case 'a': // Rotacionar o tanque para a esquerda
+        case 'a': 
             rotatingA = true;
             break;
-        case 'd': // Rotacionar o tanque para a direita
+        case 'd': 
             rotatingD = true;
             break;
-        case 'w': // Detecta o pressionamento da tecla 'w'
+        case 'w': 
             keyWPressed = true;
             break;
     }
@@ -161,30 +149,37 @@ void keyboardUpFunc(unsigned char key, int x, int y) {
 
 
 void updateTankPosition() {
+    int currentTime = glutGet(GLUT_ELAPSED_TIME);
+    float deltaTime = (currentTime - previousTime) / 1000.0f; // Converte para segundos
+    previousTime = currentTime;
+
+    // Movimentar o tanque com base no deltaTime
     if (keyWPressed) {
-        tankPosZ += speed * sin(angleYY * M_PI / 180.0f);
-        tankPosX -= speed * cos(angleYY * M_PI / 180.0f);
+        tankPosZ += speed * deltaTime * sin(angleYY * M_PI / 180.0f);
+        tankPosX -= speed * deltaTime * cos(angleYY * M_PI / 180.0f);
     }
 
-    if(rotatingA) {
-        angleYY += rotationSpeed;
+    // Rotacionar o tanque com base no deltaTime
+    if (rotatingA) {
+        angleYY += rotationSpeed * deltaTime;
     }
 
-    if(rotatingD) {
-        angleYY -= rotationSpeed;
+    if (rotatingD) {
+        angleYY -= rotationSpeed * deltaTime;
     }
 
-    glutPostRedisplay();
+    glutPostRedisplay(); 
 }
 
 
 void initialize() {
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(1.0, 1.0, 1.0, 1.0);  
+
     glEnable(GL_DEPTH_TEST);
 }
 
 void reshape(int w, int h) {
-    // Evitar divisão por zero ao calcular a proporção
+   // Evitar divisão por zero ao calcular a proporção
     if (h == 0) h = 1;
 
     // Ajustar o viewport para cobrir toda a nova janela
@@ -204,7 +199,7 @@ void reshape(int w, int h) {
 }
 
 void idleFunc() {
-    updateAngle(); // Atualiza o ângulo a cada frame
+    updateAngle(); 
     updateTankPosition();
 }
 
@@ -222,6 +217,7 @@ int main(int argc, char** argv) {
     glutTimerFunc(16, update, 0);
     glutKeyboardFunc(keyboardFunc); 
     glutKeyboardUpFunc(keyboardUpFunc);// Captura eventos do teclado
+    setupLighting(); 
     glutMainLoop();
     return 0;
 }

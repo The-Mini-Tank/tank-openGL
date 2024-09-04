@@ -1,0 +1,1 @@
+g++ -I./components main.cpp components/tank.cpp -o programa -lGL -lGLU -lglut

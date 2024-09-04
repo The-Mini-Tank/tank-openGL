@@ -4,7 +4,9 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/Meshs"
+                "${workspaceFolder}/components",
+                "C:/msys64/mingw64/include/GL",
+                 "C:/msys64/mingw64/include"
             ],
             "defines": [
                 "_DEBUG",
