@@ -15,14 +15,22 @@ float rotationSpeed = 150.0f;
 bool keyWPressed = false;
 bool rotatingA = false;
 bool rotatingD = false;
-int previousTime = 0;
+bool cameraRotate = false;
 
+
+int previousTime = 0;
+float worldposX = 0.0f;
+float worldposZ = 0.0f;
+float lookAtX = 0.0f;
+float lookAtZ = 0.0f;
+float anguloCamera = 0.0f;
+
+float distance = 0.0f;
 
 void display() {
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     // Configuração da projeção
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -33,11 +41,17 @@ void display() {
     // Configuração da câmera
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    gluLookAt(lookAtX, 0, lookAtZ + 10,  // Posição da câmera: (0, 0, 10), 10 unidades à frente ao longo do eixo Z
+              worldposX, 0.0, worldposZ,  // A câmera está olhando para o ponto (0, 0, 0), o centro da cena
+              0.0, 1.0, 0.0); // O vetor "up" está ao longo do eixo Y positivo
 
     // Desenhar o tanque
         drawTank(tankPosX, tankPosZ, angleYY, angleY);
 
+    glPushMatrix();
+        glColor3f(0.8f, 0.0f, 1.0f);  
+        glutSolidCube(1.0);
+    glPopMatrix();
     
     glutSwapBuffers();
 }
@@ -82,6 +96,9 @@ void update(int value) {
 void onMouseMove(int x, int y) {
      mouseX = x;
      mouseY = y;
+
+    // lookAtX = worldposX + distance * sin(angleY * M_PI / 180.0f);
+    // lookAtZ = worldposZ + distance * cos(angleY * M_PI / 180.0f);
 }
 
 void updateAngle() {
@@ -111,9 +128,22 @@ void updateAngle() {
     //printf("keyWPressed: %s\n", keyWPressed ? "true" : "false");
 
 
-    if (angleY < 0) {
+    if (angleY <= 0) {
         angleY += 360.0f;
-    }
+    } 
+
+    // Ajuste o raio (distância do ponto central) se necessário
+    float raio = 5.0f;
+
+    // Calcular as coordenadas de lookAtX e lookAtZ com base no ângulo
+    lookAtX = raio * cos(angleY * M_PI / 180.0f);
+    lookAtZ = raio * sin(angleY * M_PI / 180.0f);
+
+    // Imprimir os valores calculados
+    printf("X: %f\n", lookAtX);
+    printf("Z: %f\n", lookAtZ);
+    printf("Z: %f\n", angleY);
+
 
     glutPostRedisplay(); 
 }
@@ -130,6 +160,9 @@ void keyboardFunc(unsigned char key, int x, int y) {
         case 'w': 
             keyWPressed = true;
             break;
+        case 'p': 
+            cameraRotate = true;
+            break;
     }
 
 }
@@ -144,7 +177,9 @@ void keyboardUpFunc(unsigned char key, int x, int y) {
      if (key == 'd') {
         rotatingD = false;
     }
-
+    if (key == 'p') {
+        cameraRotate = false;
+    }
 }
 
 
@@ -157,6 +192,8 @@ void updateTankPosition() {
     if (keyWPressed) {
         tankPosZ += speed * deltaTime * sin(angleYY * M_PI / 180.0f);
         tankPosX -= speed * deltaTime * cos(angleYY * M_PI / 180.0f);
+        worldposZ += speed * deltaTime * sin(angleYY * M_PI / 180.0f);
+        worldposX -= speed * deltaTime * cos(angleYY * M_PI / 180.0f);
     }
 
     // Rotacionar o tanque com base no deltaTime

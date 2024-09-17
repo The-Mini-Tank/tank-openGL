@@ -22,6 +22,14 @@ void drawTank(float tankPosX, float tankPosZ, float angleYY, float angleY) {
             glutSolidCube(1.0);
         glPopMatrix();
 
+        // Frente 
+        glPushMatrix();
+            glScalef(0.5f, 0.5f, 1.8f);
+            glTranslatef(-3.0f,0,0);
+            glColor3f(0.3, 0.3, 0.3);
+            glutSolidCube(1.0);
+        glPopMatrix();
+
         // Torre e Cano
         glPushMatrix();
             glRotatef(angleY, 0.0f, 1.0f, 0.0f); 
