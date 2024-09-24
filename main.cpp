@@ -43,9 +43,9 @@ void display() {
     // Configuração da câmera
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(worldposX, 0, worldposZ + 10,  // Posição da câmera: (0, 0, 10), 10 unidades à frente ao longo do eixo Z
-              worldposX, 0.0, worldposZ,  // A câmera está olhando para o ponto (0, 0, 0), o centro da cena
-              0.0, 1.0, 0.0); // O vetor "up" está ao longo do eixo Y positivo
+    gluLookAt(worldposX, 0, worldposZ + 10,  
+              worldposX, 0.0, worldposZ,  
+              0.0, 1.0, 0.0); 
 
     // Desenhar o tanque
         drawTank(tankPosX, tankPosZ, angleYY, angleY);
@@ -224,20 +224,26 @@ void idleFunc() {
 }
 
 int main(int argc, char** argv) {
+
+    /// incializar glut
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 600);
     glutInitWindowPosition(100, 100);
     glutCreateWindow("Tanque 3D com Rodas Laterais");
+    
+    // Sets
     initialize();
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
-    glutPassiveMotionFunc(onMouseMove); // Captura o movimento do mouse
+    glutPassiveMotionFunc(onMouseMove);
     glutIdleFunc(idleFunc);
-    glutTimerFunc(16, update, 0);
     glutKeyboardFunc(keyboardFunc); 
-    glutKeyboardUpFunc(keyboardUpFunc);// Captura eventos do teclado
+    glutKeyboardUpFunc(keyboardUpFunc);
+    
     setupLighting(); 
+    
+    glutTimerFunc(16, update, 0);
     glutMainLoop();
     return 0;
 }
