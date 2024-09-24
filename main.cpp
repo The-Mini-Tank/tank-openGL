@@ -4,6 +4,8 @@
 #include <cmath>
 #include <cstdio>
 #include <iostream>
+
+// COMPILAR
 #include "components/Tank.cpp"
 
 float angleY = 0.0f; 
@@ -41,7 +43,7 @@ void display() {
     // Configuração da câmera
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(lookAtX, 0, lookAtZ + 10,  // Posição da câmera: (0, 0, 10), 10 unidades à frente ao longo do eixo Z
+    gluLookAt(worldposX, 0, worldposZ + 10,  // Posição da câmera: (0, 0, 10), 10 unidades à frente ao longo do eixo Z
               worldposX, 0.0, worldposZ,  // A câmera está olhando para o ponto (0, 0, 0), o centro da cena
               0.0, 1.0, 0.0); // O vetor "up" está ao longo do eixo Y positivo
 
@@ -96,9 +98,6 @@ void update(int value) {
 void onMouseMove(int x, int y) {
      mouseX = x;
      mouseY = y;
-
-    // lookAtX = worldposX + distance * sin(angleY * M_PI / 180.0f);
-    // lookAtZ = worldposZ + distance * cos(angleY * M_PI / 180.0f);
 }
 
 void updateAngle() {
@@ -125,25 +124,9 @@ void updateAngle() {
     angleY = atan2((float)dy, (float)dx) * (180.0 / M_PI); 
     angleY = angleY - angleYY;
 
-    //printf("keyWPressed: %s\n", keyWPressed ? "true" : "false");
-
-
     if (angleY <= 0) {
         angleY += 360.0f;
     } 
-
-    // Ajuste o raio (distância do ponto central) se necessário
-    float raio = 5.0f;
-
-    // Calcular as coordenadas de lookAtX e lookAtZ com base no ângulo
-    lookAtX = raio * cos(angleY * M_PI / 180.0f);
-    lookAtZ = raio * sin(angleY * M_PI / 180.0f);
-
-    // Imprimir os valores calculados
-    printf("X: %f\n", lookAtX);
-    printf("Z: %f\n", lookAtZ);
-    printf("Z: %f\n", angleY);
-
 
     glutPostRedisplay(); 
 }

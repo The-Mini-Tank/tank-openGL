@@ -5,8 +5,9 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/components",
+                "${workspaceFolder}/include",
                 "C:/msys64/mingw64/include/GL",
-                 "C:/msys64/mingw64/include"
+                "C:/msys64/mingw64/include"
             ],
             "defines": [
                 "_DEBUG",
